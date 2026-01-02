@@ -44,8 +44,8 @@ def compute_metrics(eval_pred):
     sigmoid = torch.nn.Sigmoid()
     probs = sigmoid(torch.Tensor(predictions))
     
-    # Convert probabilities to binary predictions (threshold = 0.5)
-    y_pred = (probs.numpy() > 0.5).astype(int)
+    # Convert probabilities to binary predictions (threshold = 0.3)
+    y_pred = (probs.numpy() > 0.3).astype(int)
     y_true = labels
     
     # Calculate metrics
@@ -123,9 +123,9 @@ def create_trainer(
     train_dataset,
     val_dataset,
     output_dir="models/emotion_classifier",
-    num_epochs=5,
+    num_epochs=10,
     batch_size=16,
-    learning_rate=2e-5
+    learning_rate=1e-5
 ):
     """
     Create HuggingFace Trainer with training arguments
@@ -202,7 +202,7 @@ def create_trainer(
     return trainer
 
 
-def predict_sample(model, tokenizer, text, threshold=0.5):
+def predict_sample(model, tokenizer, text, threshold=0.3):
     """
     Predict emotions for a single text
     
@@ -356,6 +356,6 @@ if __name__ == "__main__":
     trainer, model, tokenizer = train_model(
         data_dir="data/processed",
         output_dir="models/emotion_classifier",
-        num_epochs=5,
+        num_epochs=10,
         batch_size=16  # Adjust if GPU memory is limited
     )
