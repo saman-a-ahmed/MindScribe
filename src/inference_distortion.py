@@ -30,10 +30,29 @@ class DistortionClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         num_labels = get_num_distortions()
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            model_path,
-            num_labels=num_labels
-        )
+        # Load model using AutoModel - it will infer from model_type in config
+        # Use local_files_only to avoid network calls and trust_remote_code=False for security
+        try:
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                model_path,
+                num_labels=num_labels,
+                trust_remote_code=False,
+                local_files_only=True
+            )
+        except Exception as e:
+            # If loading fails, provide detailed error
+            error_msg = str(e)
+            print(f"Error loading model: {error_msg}")
+            # Try without local_files_only in case there are missing files
+            try:
+                self.model = AutoModelForSequenceClassification.from_pretrained(
+                    model_path,
+                    num_labels=num_labels,
+                    trust_remote_code=False
+                )
+            except Exception as e2:
+                raise RuntimeError(f"Failed to load model from {model_path}. First error: {error_msg}. Second error: {str(e2)}")
+        
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         
         self.model.to(self.device)

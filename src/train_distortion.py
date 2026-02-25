@@ -21,8 +21,47 @@ from cognitive_distortions import (
     get_num_distortions,
     DISTORTION_NAMES
 )
+from torch.nn import BCEWithLogitsLoss
 logging.basicConfig(level=logging.INFO)
 
+
+def find_optimal_threshold(probs, labels, metric='f1'):
+    """
+    Find optimal threshold for multi-label classification
+    
+    Args:
+        probs: Probability predictions (n_samples, n_classes)
+        labels: True labels (n_samples, n_classes)
+        metric: Metric to optimize ('f1', 'f1_micro', 'f1_macro')
+    
+    Returns:
+        Optimal threshold value
+    """
+    thresholds = np.arange(0.1, 0.9, 0.05)
+    best_threshold = 0.5
+    best_score = 0.0
+    
+    for threshold in thresholds:
+        y_pred = (probs > threshold).astype(int)
+        
+        if metric == 'f1_micro':
+            score = f1_score(labels, y_pred, average='micro', zero_division=0)
+        elif metric == 'f1_macro':
+            score = f1_score(labels, y_pred, average='macro', zero_division=0)
+        else:
+            # Average per-class F1
+            per_class_f1 = f1_score(labels, y_pred, average=None, zero_division=0)
+            score = np.mean(per_class_f1)
+        
+        if score > best_score:
+            best_score = score
+            best_threshold = threshold
+    
+    return best_threshold, best_score
+
+
+# Global threshold for compute_metrics (can be updated)
+_current_threshold = 0.3
 
 def compute_metrics(eval_pred):
     """
@@ -34,14 +73,15 @@ def compute_metrics(eval_pred):
     Returns:
         Dictionary of metric scores
     """
+    global _current_threshold
     predictions, labels = eval_pred
     
     # Apply sigmoid to logits to get probabilities
     sigmoid = torch.nn.Sigmoid()
-    probs = sigmoid(torch.Tensor(predictions))
+    probs = sigmoid(torch.Tensor(predictions)).numpy()
     
-    # Convert probabilities to binary predictions (threshold = 0.3)
-    y_pred = (probs.numpy() > 0.3).astype(int)
+    # Convert probabilities to binary predictions
+    y_pred = (probs > _current_threshold).astype(int)
     y_true = labels
     
     # Calculate metrics
@@ -84,7 +124,45 @@ def load_data(data_dir="data/processed/distortions"):
     print(f"  Val: {len(val_dataset)} examples")
     print(f"  Test: {len(test_dataset)} examples")
     
-    return train_dataset, val_dataset, test_dataset
+    # VERIFY LABEL INTEGRITY - Check if labels are all zeros
+    print(f"\n🔍 Verifying label integrity...")
+    print("-" * 70)
+    
+    # Check training labels
+    train_labels = np.array([example['labels'] for example in train_dataset])
+    val_labels = np.array([example['labels'] for example in val_dataset])
+    
+    print(f"Training set label statistics:")
+    print(f"  Total examples: {len(train_labels)}")
+    print(f"  Examples with all zeros: {np.sum(np.sum(train_labels, axis=1) == 0)}")
+    print(f"  Examples with at least one positive: {np.sum(np.sum(train_labels, axis=1) > 0)}")
+    print(f"  Total positive labels: {np.sum(train_labels)}")
+    print(f"  Label shape: {train_labels.shape}")
+    
+    # Print sample labels
+    print(f"\n  Sample labels (first 5 examples):")
+    for i in range(min(5, len(train_labels))):
+        print(f"    Example {i}: {train_labels[i].tolist()}")
+        print(f"      Sum: {np.sum(train_labels[i])}, Non-zero indices: {np.where(train_labels[i] > 0)[0].tolist()}")
+    
+    # Check per-class positive counts
+    print(f"\n  Per-class positive counts in training set:")
+    pos_counts = np.sum(train_labels, axis=0)
+    neg_counts = len(train_labels) - pos_counts
+    for i, dist_label in enumerate(COGNITIVE_DISTORTION_LABELS):
+        print(f"    {DISTORTION_NAMES[dist_label]:30s}: {int(pos_counts[i]):4d} positive, {int(neg_counts[i]):4d} negative")
+    
+    # Check if all labels are zeros
+    if np.sum(train_labels) == 0:
+        print("\n❌ ERROR: All training labels are zeros! Check data preprocessing.")
+        raise ValueError("All training labels are zeros - cannot train model")
+    
+    if np.sum(val_labels) == 0:
+        print("\n⚠️  WARNING: All validation labels are zeros!")
+    
+    print("-" * 70)
+    
+    return train_dataset, val_dataset, test_dataset, pos_counts, neg_counts
 
 
 def load_model(model_name="roberta-base", num_labels=None):
@@ -129,7 +207,8 @@ def create_trainer(
     output_dir="models/distortion_classifier",
     num_epochs=10,
     batch_size=16,
-    learning_rate=1e-5
+    learning_rate=1e-5,
+    pos_weight=None
 ):
     """
     Create HuggingFace Trainer with training arguments
@@ -142,11 +221,38 @@ def create_trainer(
         num_epochs: Number of training epochs
         batch_size: Batch size per device
         learning_rate: Learning rate
+        pos_weight: Positive class weights for BCEWithLogitsLoss (tensor)
     
     Returns:
         Trainer object
     """
     print(f"\n⚙️  Setting up training...")
+    
+    # FIX CLASS IMBALANCE - Create custom loss function with pos_weight
+    if pos_weight is not None:
+        print(f"  Using pos_weight for class imbalance:")
+        for i, dist_label in enumerate(COGNITIVE_DISTORTION_LABELS):
+            print(f"    {DISTORTION_NAMES[dist_label]:30s}: {pos_weight[i]:.3f}")
+        
+        # Create custom loss function that handles device placement
+        class WeightedBCELoss:
+            def __init__(self, pos_weight):
+                # Store pos_weight on CPU initially, will move to device when needed
+                self.pos_weight = pos_weight
+                self.loss_fn = None  # Will be created on first call with device info
+            
+            def __call__(self, logits, labels):
+                # Get device from logits
+                device = logits.device
+                # Move pos_weight to same device as logits
+                pos_weight_on_device = self.pos_weight.to(device)
+                # Create loss function with pos_weight on correct device
+                loss_fn = BCEWithLogitsLoss(pos_weight=pos_weight_on_device)
+                return loss_fn(logits, labels.float())
+        
+        loss_fn = WeightedBCELoss(pos_weight)
+    else:
+        loss_fn = None  # Use default
     
     training_args = TrainingArguments(
         # Output
@@ -187,7 +293,7 @@ def create_trainer(
         seed=42,
     )
     
-    # Create Trainer
+    # Create Trainer with custom loss
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -197,16 +303,34 @@ def create_trainer(
         callbacks=[EarlyStoppingCallback(early_stopping_patience=10)]
     )
     
+    # Override compute_loss if pos_weight is provided
+    if pos_weight is not None:
+        original_compute_loss = trainer.compute_loss
+        
+        def compute_loss(model, inputs, return_outputs=False, num_items_in_batch=None):
+            """
+            Custom loss function with pos_weight support
+            Args match Trainer's expected signature
+            """
+            labels = inputs.get("labels")
+            outputs = model(**inputs)
+            logits = outputs.get("logits")
+            loss = loss_fn(logits, labels)
+            return (loss, outputs) if return_outputs else loss
+        
+        trainer.compute_loss = compute_loss
+    
     print(f"✓ Trainer configured:")
     print(f"  Epochs: {num_epochs}")
     print(f"  Batch size: {batch_size}")
     print(f"  Learning rate: {learning_rate}")
     print(f"  Device: {'GPU' if torch.cuda.is_available() else 'CPU'}")
+    print(f"  Loss function: {'Weighted BCE' if pos_weight is not None else 'BCE'}")
     
     return trainer
 
 
-def predict_sample(model, tokenizer, text, threshold=0.3):
+def predict_sample(model, tokenizer, text, threshold=0.3, print_probs=False):
     """
     Predict cognitive distortions for a single text
     
@@ -215,9 +339,10 @@ def predict_sample(model, tokenizer, text, threshold=0.3):
         tokenizer: Tokenizer
         text: Input text
         threshold: Prediction threshold
+        print_probs: Whether to print raw probabilities
     
     Returns:
-        List of predicted distortion labels with probabilities
+        List of predicted distortion labels with probabilities, and raw probabilities
     """
     # Tokenize
     inputs = tokenizer(
@@ -229,7 +354,8 @@ def predict_sample(model, tokenizer, text, threshold=0.3):
     )
     
     # Move to same device as model
-    inputs = {k: v.to(model.device) for k, v in inputs.items()}
+    device = next(model.parameters()).device
+    inputs = {k: v.to(device) for k, v in inputs.items()}
     
     # Get predictions
     model.eval()
@@ -237,8 +363,16 @@ def predict_sample(model, tokenizer, text, threshold=0.3):
         outputs = model(**inputs)
         logits = outputs.logits
     
-    # Apply sigmoid and threshold
+    # DIAGNOSE THRESHOLD - Print raw sigmoid probabilities
     probs = torch.sigmoid(logits)[0].cpu().numpy()
+    
+    if print_probs:
+        print(f"\n  Raw sigmoid probabilities (before thresholding):")
+        for i, dist_label in enumerate(COGNITIVE_DISTORTION_LABELS):
+            print(f"    {DISTORTION_NAMES[dist_label]:30s}: {probs[i]:.4f}")
+        print(f"  Max probability: {np.max(probs):.4f}")
+        print(f"  Mean probability: {np.mean(probs):.4f}")
+    
     predictions = (probs > threshold).astype(int)
     
     # Get predicted distortion labels
@@ -253,9 +387,10 @@ def predict_sample(model, tokenizer, text, threshold=0.3):
     return predicted_distortions, probs
 
 
-def test_model_predictions(model, tokenizer):
+def test_model_predictions(model, tokenizer, threshold=0.3):
     """
     Test model on sample texts to verify it's working
+    Includes raw probability diagnostics
     """
     print("\n🧪 Testing model on sample texts...")
     print("=" * 70)
@@ -269,15 +404,17 @@ def test_model_predictions(model, tokenizer):
         "Today was actually pretty good. I got some work done and felt productive.",
     ]
     
-    for text in test_texts:
-        distortions, probs = predict_sample(model, tokenizer, text)
-        print(f"\nText: {text}")
-        print(f"Predicted distortions:")
+    for idx, text in enumerate(test_texts):
+        print(f"\n{'='*70}")
+        print(f"Sample {idx + 1}: {text}")
+        print("-" * 70)
+        distortions, probs = predict_sample(model, tokenizer, text, threshold=threshold, print_probs=True)
+        print(f"\nPredicted distortions (threshold={threshold}):")
         if distortions:
             for dist_label, prob, dist_name in distortions:
-                print(f"  - {dist_name} ({dist_label}): {prob:.3f}")
+                print(f"  ✓ {dist_name} ({dist_label}): {prob:.3f}")
         else:
-            print("  - No distortions detected (neutral or below threshold)")
+            print("  - No distortions detected (all probabilities below threshold)")
     
     print("=" * 70)
 
@@ -304,14 +441,29 @@ def train_model(
     print("🚀 COGNITIVE DISTORTION CLASSIFICATION TRAINING")
     print("="*70)
     
-    # Step 1: Load data
-    train_dataset, val_dataset, test_dataset = load_data(data_dir)
+    # Step 1: Load data and verify labels
+    train_dataset, val_dataset, test_dataset, pos_counts, neg_counts = load_data(data_dir)
     
-    # Step 2: Load model
+    # Step 2: FIX CLASS IMBALANCE - Compute pos_weight
+    print(f"\n⚖️  Computing class weights for imbalanced data...")
+    pos_weight = []
+    for i in range(len(COGNITIVE_DISTORTION_LABELS)):
+        pos_count = pos_counts[i]
+        neg_count = neg_counts[i]
+        if pos_count > 0:
+            weight = neg_count / pos_count
+        else:
+            weight = 1.0  # No positive examples for this class
+        pos_weight.append(weight)
+    
+    pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32)
+    print(f"✓ Computed pos_weight tensor: {pos_weight_tensor.tolist()}")
+    
+    # Step 3: Load model
     num_labels = get_num_distortions()
     model, tokenizer = load_model(num_labels=num_labels)
     
-    # Step 3: Create trainer
+    # Step 4: Create trainer with pos_weight
     trainer = create_trainer(
         model=model,
         train_dataset=train_dataset,
@@ -319,47 +471,75 @@ def train_model(
         output_dir=output_dir,
         num_epochs=num_epochs,
         batch_size=batch_size,
-        learning_rate=learning_rate
+        learning_rate=learning_rate,
+        pos_weight=pos_weight_tensor
     )
     
-    # Step 4: Train
+    # Step 5: Train
     print("\n🏋️  Starting training...")
     print("-" * 70)
     train_result = trainer.train()
     
-    # Step 5: Save model
+    # Step 6: Save model
     print("\n💾 Saving model...")
     trainer.save_model(output_dir)
     tokenizer.save_pretrained(output_dir)
     print(f"✓ Model saved to {output_dir}")
     
-    # Step 6: Evaluate on validation set
-    print("\n📊 Evaluating on validation set...")
-    eval_results = trainer.evaluate()
-    print("\nValidation Results:")
+    # Step 7: TUNE PREDICTION THRESHOLD - Find optimal threshold
+    print("\n🎯 Finding optimal prediction threshold...")
+    print("-" * 70)
+    
+    # Get predictions on validation set
+    val_predictions = trainer.predict(val_dataset)
+    val_probs = torch.sigmoid(torch.Tensor(val_predictions.predictions)).numpy()
+    val_labels = np.array([example['labels'] for example in val_dataset])
+    
+    # Find optimal threshold
+    optimal_threshold, optimal_score = find_optimal_threshold(val_probs, val_labels, metric='f1_micro')
+    print(f"  Optimal threshold: {optimal_threshold:.3f} (F1-micro: {optimal_score:.4f})")
+    
+    # Evaluate with optimal threshold
+    print(f"\n📊 Evaluating on validation set (threshold={optimal_threshold:.3f})...")
+    
+    # Update global threshold for compute_metrics
+    global _current_threshold
+    _current_threshold = optimal_threshold
+    
+    # Manually compute with optimal threshold
+    val_pred_optimal = (val_probs > optimal_threshold).astype(int)
+    f1_micro_opt = f1_score(val_labels, val_pred_optimal, average='micro', zero_division=0)
+    f1_macro_opt = f1_score(val_labels, val_pred_optimal, average='macro', zero_division=0)
+    per_label_f1_opt = f1_score(val_labels, val_pred_optimal, average=None, zero_division=0)
+    
+    print("\nValidation Results (with optimal threshold):")
     print("-" * 70)
     print("Overall Metrics:")
-    for key in ['eval_f1_micro', 'eval_f1_macro', 'eval_precision_micro', 'eval_recall_micro', 'eval_accuracy_subset']:
-        if key in eval_results:
-            print(f"  {key}: {eval_results[key]:.4f}")
+    print(f"  F1-micro: {f1_micro_opt:.4f}")
+    print(f"  F1-macro: {f1_macro_opt:.4f}")
+    print(f"  Precision-micro: {precision_score(val_labels, val_pred_optimal, average='micro', zero_division=0):.4f}")
+    print(f"  Recall-micro: {recall_score(val_labels, val_pred_optimal, average='micro', zero_division=0):.4f}")
+    print(f"  Subset accuracy: {accuracy_score(val_labels, val_pred_optimal):.4f}")
     
     print("\nPer-Distortion F1 Scores:")
-    for dist_label in COGNITIVE_DISTORTION_LABELS:
-        key = f'eval_f1_{dist_label}'
-        if key in eval_results:
-            print(f"  {DISTORTION_NAMES[dist_label]:25s}: {eval_results[key]:.4f}")
+    for i, dist_label in enumerate(COGNITIVE_DISTORTION_LABELS):
+        if i < len(per_label_f1_opt):
+            print(f"  {DISTORTION_NAMES[dist_label]:30s}: {per_label_f1_opt[i]:.4f}")
     
-    # Step 7: Test predictions
-    test_model_predictions(model, tokenizer)
+    # Step 8: Test predictions with optimal threshold
+    print(f"\n🧪 Testing model predictions (threshold={optimal_threshold:.3f})...")
+    test_model_predictions(model, tokenizer, threshold=optimal_threshold)
     
     print("\n" + "="*70)
     print("✅ TRAINING COMPLETE!")
     print("="*70)
     print(f"\nModel saved to: {output_dir}")
     print(f"Training time: {train_result.metrics['train_runtime']:.2f}s")
-    print(f"Best validation F1 (micro): {eval_results.get('eval_f1_micro', 0):.4f}")
+    print(f"Optimal threshold: {optimal_threshold:.3f}")
+    print(f"Best validation F1-micro: {f1_micro_opt:.4f}")
+    print(f"Best validation F1-macro: {f1_macro_opt:.4f}")
     
-    return trainer, model, tokenizer
+    return trainer, model, tokenizer, optimal_threshold
 
 
 if __name__ == "__main__":
@@ -391,7 +571,7 @@ if __name__ == "__main__":
         exit(1)
     
     # Train model
-    trainer, model, tokenizer = train_model(
+    trainer, model, tokenizer, optimal_threshold = train_model(
         data_dir=args.data_dir,
         output_dir=args.output_dir,
         num_epochs=args.epochs,
