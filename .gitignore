@@ -16,9 +16,23 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
-# Model checkpoints
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Model checkpoints and large model files
 models/**/checkpoint-*/
 models/**/training_args.bin
+ models/**/*.safetensors
+ models/**/*.bin
+ models/**/*.pt
+ models/**/*.pth
 
 # OS
 .DS_Store
@@ -30,3 +44,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+.cursor/
+
+# Docker volumes
+postgres_data/

@@ -1,0 +1,3 @@
+"""
+MindScribe Application Package
+"""
