@@ -11,12 +11,17 @@ import plotly.express as px
 import plotly.graph_objects as go
 from typing import Optional
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# `streamlit run app/streamlit_app.py` puts the script's own folder (app/) on
+# sys.path rather than the project root, so absolute `app.`/`src.` imports would
+# fail. Add the project root once so those packages resolve.
+PROJECT_ROOT = str(Path(__file__).parent.parent)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from app.database import SessionLocal, init_db
 from app.repository import JournalRepository
 from app.config import settings
+from app.trends import TrendAnalyzer
 from src.analyzer import JournalAnalyzer
 
 # Page configuration
@@ -311,7 +316,47 @@ elif page == "📊 Trends & Insights":
     try:
         db = SessionLocal()
         repo = JournalRepository(db)
-        
+
+        # AI-generated insights and patterns (TrendAnalyzer)
+        # "All time" has no day window, so fall back to a large look-back.
+        analysis_days = days if days else 3650
+        trend_analyzer = TrendAnalyzer(repo)
+        evolution = trend_analyzer.get_emotional_evolution(
+            user_id=settings.DEFAULT_USER_ID, days=analysis_days
+        )
+        emotion_patterns = trend_analyzer.detect_emotional_patterns(
+            user_id=settings.DEFAULT_USER_ID, days=analysis_days
+        )
+        distortion_freq = trend_analyzer.get_distortion_frequency(
+            user_id=settings.DEFAULT_USER_ID, days=analysis_days
+        )
+
+        st.markdown("### 🧭 AI Insights")
+        insight_msgs = [
+            msg for msg in (evolution.get("insights", []) + distortion_freq.get("insights", []))
+            if "No data available" not in msg
+        ]
+        if insight_msgs:
+            for msg in insight_msgs:
+                st.info(f"• {msg}")
+        else:
+            st.caption("Not enough data yet for automated insights.")
+
+        # Merge + de-duplicate detected patterns (preserve order, drop empty states)
+        seen = set()
+        pattern_msgs = []
+        for pattern in (evolution.get("patterns", []) + emotion_patterns):
+            if "No data available" in pattern or pattern in seen:
+                continue
+            seen.add(pattern)
+            pattern_msgs.append(pattern)
+        if pattern_msgs:
+            st.markdown("**Detected patterns:**")
+            for pattern in pattern_msgs:
+                st.success(f"• {pattern}")
+
+        st.markdown("---")
+
         # Emotion statistics
         st.markdown("### 📈 Emotion Statistics")
         stats = repo.get_emotion_statistics(

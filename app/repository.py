@@ -7,6 +7,7 @@ from sqlalchemy import desc, func, and_, or_
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from app.models import JournalEntry, EmotionAnalysis, DistortionAnalysis
+from app.utils import utcnow
 
 
 class JournalRepository:
@@ -37,7 +38,7 @@ class JournalRepository:
         entry = JournalEntry(
             text=text,
             user_id=user_id,
-            timestamp=datetime.utcnow()
+            timestamp=utcnow()
         )
         self.db.add(entry)
         self.db.flush()  # Get the ID
@@ -121,7 +122,35 @@ class JournalRepository:
             query = query.filter(JournalEntry.timestamp <= end_date)
         
         return query.order_by(desc(JournalEntry.timestamp)).offset(skip).limit(limit).all()
-    
+
+    def count_entries(
+        self,
+        user_id: str = "default",
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> int:
+        """
+        Count journal entries matching the same filters as get_entries.
+
+        Args:
+            user_id: User identifier
+            start_date: Start date filter
+            end_date: End date filter
+
+        Returns:
+            Total number of matching entries
+        """
+        query = self.db.query(func.count(JournalEntry.id)).filter(
+            JournalEntry.user_id == user_id
+        )
+
+        if start_date:
+            query = query.filter(JournalEntry.timestamp >= start_date)
+        if end_date:
+            query = query.filter(JournalEntry.timestamp <= end_date)
+
+        return query.scalar() or 0
+
     def update_entry(self, entry_id: int, text: str, user_id: str = "default") -> Optional[JournalEntry]:
         """
         Update a journal entry's text
@@ -362,5 +391,5 @@ class JournalRepository:
         Returns:
             List of JournalEntry objects
         """
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = utcnow() - timedelta(days=days)
         return self.get_entries(user_id=user_id, start_date=start_date)
