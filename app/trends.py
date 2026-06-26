@@ -3,11 +3,11 @@ Trend analysis and pattern detection for journal entries
 """
 
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
-from collections import defaultdict
+from datetime import timedelta
 import pandas as pd
 from app.repository import JournalRepository
-from app.models import JournalEntry
+from app.utils import utcnow
+from src.feedback import NEGATIVE_EMOTIONS, POSITIVE_EMOTIONS
 
 
 class TrendAnalyzer:
@@ -35,7 +35,7 @@ class TrendAnalyzer:
         Returns:
             Dictionary with evolution data and insights
         """
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = utcnow() - timedelta(days=days)
         trends = self.repo.get_emotion_trends(
             user_id=user_id,
             start_date=start_date,
@@ -148,7 +148,7 @@ class TrendAnalyzer:
         Returns:
             Comparison analysis
         """
-        now = datetime.utcnow()
+        now = utcnow()
         period1_start = now - timedelta(days=period1_days)
         period2_end = period1_start
         period2_start = period2_end - timedelta(days=period2_days)
@@ -219,7 +219,7 @@ class TrendAnalyzer:
             Weekly summary data
         """
         summaries = []
-        now = datetime.utcnow()
+        now = utcnow()
         
         for week in range(weeks):
             week_start = now - timedelta(days=(week + 1) * 7)
@@ -267,7 +267,7 @@ class TrendAnalyzer:
         Returns:
             Distortion frequency analysis
         """
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = utcnow() - timedelta(days=days)
         stats = self.repo.get_distortion_statistics(
             user_id=user_id,
             start_date=start_date
@@ -313,7 +313,7 @@ class TrendAnalyzer:
         Returns:
             List of detected patterns
         """
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = utcnow() - timedelta(days=days)
         stats = self.repo.get_emotion_statistics(
             user_id=user_id,
             start_date=start_date
@@ -324,17 +324,14 @@ class TrendAnalyzer:
         if not stats['emotions']:
             return ["No data available"]
         
-        # Categorize emotions
-        negative_emotions = ['sadness', 'anger', 'fear', 'anxiety', 'disappointment', 'grief', 'remorse']
-        positive_emotions = ['joy', 'happiness', 'excitement', 'gratitude', 'love', 'pride', 'optimism']
-        
+        # Categorize emotions using the shared taxonomy (see src.feedback)
         negative_count = sum(
             e['count'] for e in stats['emotions']
-            if e['emotion'] in negative_emotions
+            if e['emotion'] in NEGATIVE_EMOTIONS
         )
         positive_count = sum(
             e['count'] for e in stats['emotions']
-            if e['emotion'] in positive_emotions
+            if e['emotion'] in POSITIVE_EMOTIONS
         )
         
         total_emotions = sum(e['count'] for e in stats['emotions'])

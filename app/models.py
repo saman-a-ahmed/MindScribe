@@ -4,8 +4,8 @@ SQLAlchemy database models for MindScribe
 
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from app.database import Base
+from app.utils import utcnow
 
 
 class JournalEntry(Base):
@@ -16,7 +16,7 @@ class JournalEntry(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     text = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    timestamp = Column(DateTime, default=utcnow, nullable=False, index=True)
     user_id = Column(String(100), default="default", nullable=False, index=True)  # For future multi-user support
     
     # Relationships
