@@ -3,7 +3,7 @@ Configuration management for MindScribe
 """
 
 import os
-from typing import Optional
+from typing import List
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -43,8 +43,8 @@ class Settings:
     API_PORT: int = int(os.getenv("API_PORT", "8000"))
     API_RELOAD: bool = os.getenv("API_RELOAD", "false").lower() == "true"
     
-    # CORS settings
-    CORS_ORIGINS: list = os.getenv(
+    # CORS settings (comma-separated origins in the env var)
+    CORS_ORIGINS: List[str] = os.getenv(
         "CORS_ORIGINS",
         "http://localhost:8501,http://localhost:3000"
     ).split(",")

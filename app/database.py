@@ -3,19 +3,17 @@ Database connection and session management
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from typing import Generator
-import os
+
+from app.config import settings
 
 # Base class for models
 Base = declarative_base()
 
-# Database URL - defaults to SQLite for development
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "sqlite:///./mindscribe.db"
-)
+# Database URL - single source of truth lives in app.config.settings
+# (defaults to SQLite for local development).
+DATABASE_URL = settings.DATABASE_URL
 
 # Create engine
 if DATABASE_URL.startswith("sqlite"):
