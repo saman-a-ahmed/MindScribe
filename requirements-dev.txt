@@ -1,0 +1,9 @@
+# Development / test dependencies.
+#
+# These let the non-ML pytest suite (tests/) run WITHOUT installing the heavy
+# ML stack (torch, transformers, fastapi, streamlit). Install with:
+#   pip install -r requirements-dev.txt
+pytest>=8.0
+sqlalchemy==2.0.36
+pandas==2.3.3
+python-dotenv==1.0.1
