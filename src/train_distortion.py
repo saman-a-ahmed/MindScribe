@@ -16,7 +16,7 @@ from transformers import (
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 import os
 import logging
-from cognitive_distortions import (
+from src.cognitive_distortions import (
     COGNITIVE_DISTORTION_LABELS,
     get_num_distortions,
     DISTORTION_NAMES
@@ -544,8 +544,8 @@ def train_model(
 
 if __name__ == "__main__":
     """
-    Run training
-    Usage: python src/train_distortion.py
+    Run training. Run from the project root as a module:
+      python -m src.train_distortion
     """
     import argparse
     
@@ -567,7 +567,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.data_dir):
         print("❌ Preprocessed data not found!")
         print(f"Please run preprocessing first:")
-        print(f"  python src/preprocess_distortions.py")
+        print(f"  python -m src.preprocess_distortions")
         exit(1)
     
     # Train model

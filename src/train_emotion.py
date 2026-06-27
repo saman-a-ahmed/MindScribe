@@ -341,15 +341,15 @@ def train_model(
 
 if __name__ == "__main__":
     """
-    Run training
-    Usage: python src/train_emotion.py
+    Run training. Run from the project root as a module:
+      python -m src.train_emotion
     """
-    
+
     # Check if preprocessed data exists
     if not os.path.exists("data/processed/train"):
         print("❌ Preprocessed data not found!")
         print("Please run preprocessing first:")
-        print("  python src/preprocessing.py")
+        print("  python -m src.preprocessing")
         exit(1)
     
     # Train model
