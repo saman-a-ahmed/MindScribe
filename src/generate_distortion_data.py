@@ -8,7 +8,7 @@ import random
 import pandas as pd
 from pathlib import Path
 from typing import List, Dict, Tuple
-from cognitive_distortions import (
+from src.cognitive_distortions import (
     COGNITIVE_DISTORTION_LABELS,
     EXAMPLE_TEXTS,
     NEUTRAL_EXAMPLES,
@@ -337,8 +337,9 @@ def save_dataset(df: pd.DataFrame, output_path: str, train_split: float = 0.7, v
 
 if __name__ == "__main__":
     """
-    Generate synthetic dataset for cognitive distortion detection
-    Usage: python src/generate_distortion_data.py
+    Generate synthetic dataset for cognitive distortion detection.
+    Run from the project root as a module:
+      python -m src.generate_distortion_data
     """
     import argparse
     
@@ -396,5 +397,5 @@ if __name__ == "__main__":
     print("\n✅ Dataset generation complete!")
     print(f"\nNext steps:")
     print(f"  1. Review generated data: {args.output_dir}/")
-    print(f"  2. Run preprocessing: python src/preprocess_distortions.py")
-    print(f"  3. Train model: python src/train_distortion.py")
+    print(f"  2. Run preprocessing: python -m src.preprocess_distortions")
+    print(f"  3. Train model: python -m src.train_distortion")

@@ -6,7 +6,7 @@ Run sanity checks on journal-like texts
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import numpy as np
-from cognitive_distortions import (
+from src.cognitive_distortions import (
     COGNITIVE_DISTORTION_LABELS,
     DISTORTION_NAMES,
     DISTORTION_DESCRIPTIONS,
@@ -285,19 +285,18 @@ def analyze_journal_entry(text, model_path="models/distortion_classifier", thres
 
 if __name__ == "__main__":
     """
-    Run inference sanity checks
-    Usage: 
-      python src/inference_distortion.py              # Run predefined test cases
-      python src/inference_distortion.py --interactive  # Interactive mode
+    Run inference sanity checks. Run from the project root as a module:
+      python -m src.inference_distortion                # Run predefined test cases
+      python -m src.inference_distortion --interactive  # Interactive mode
     """
     import sys
     import os
-    
+
     # Check if model exists
     if not os.path.exists("models/distortion_classifier"):
         print("❌ Model not found!")
         print("Please train the model first:")
-        print("  python src/train_distortion.py")
+        print("  python -m src.train_distortion")
         sys.exit(1)
     
     # Check for interactive flag
