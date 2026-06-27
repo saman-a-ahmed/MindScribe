@@ -10,7 +10,7 @@ from pathlib import Path
 from datasets import Dataset, load_from_disk
 from transformers import RobertaTokenizer
 import os
-from cognitive_distortions import COGNITIVE_DISTORTION_LABELS, get_num_distortions
+from src.cognitive_distortions import COGNITIVE_DISTORTION_LABELS, get_num_distortions
 
 
 class DistortionPreprocessor:
@@ -269,8 +269,8 @@ def print_sample(dataset, tokenizer, num_samples=1):
         tokenizer: Tokenizer to decode tokens
         num_samples: Number of samples to print
     """
-    from cognitive_distortions import COGNITIVE_DISTORTION_LABELS
-    
+    from src.cognitive_distortions import COGNITIVE_DISTORTION_LABELS
+
     print(f"\n📊 Sample Processed Example(s):")
     print("=" * 70)
     
@@ -324,8 +324,8 @@ def load_preprocessed_data(data_dir="data/processed/distortions"):
 
 if __name__ == "__main__":
     """
-    Run preprocessing pipeline
-    Usage: python src/preprocess_distortions.py
+    Run preprocessing pipeline. Run from the project root as a module:
+      python -m src.preprocess_distortions
     """
     
     # Check if raw data exists
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     if not Path(raw_data_dir).exists():
         print("❌ Raw data not found!")
         print(f"Please generate the dataset first:")
-        print(f"  python src/generate_distortion_data.py")
+        print(f"  python -m src.generate_distortion_data")
         exit(1)
     
     # Run preprocessing
@@ -349,5 +349,5 @@ if __name__ == "__main__":
     
     print("\n✅ Preprocessing complete!")
     print("\nTo load data later:")
-    print("  from preprocess_distortions import load_preprocessed_data")
+    print("  from src.preprocess_distortions import load_preprocessed_data")
     print("  train, val, test = load_preprocessed_data('data/processed/distortions')")

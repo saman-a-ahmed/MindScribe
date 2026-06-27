@@ -240,10 +240,10 @@ def load_preprocessed_data(data_dir="data/processed"):
 
 if __name__ == "__main__":
     """
-    Run preprocessing pipeline
-    Usage: python src/preprocessing.py
+    Run preprocessing pipeline. Run from the project root as a module:
+      python -m src.preprocessing
     """
-    
+
     # Run preprocessing
     train, val, test = prepare_dataset(
         save_to_disk=True,
@@ -256,5 +256,5 @@ if __name__ == "__main__":
     
     print("\n✅ Preprocessing complete!")
     print("\nTo load data later:")
-    print("  from preprocessing import load_preprocessed_data")
+    print("  from src.preprocessing import load_preprocessed_data")
     print("  train, val, test = load_preprocessed_data('data/processed')")

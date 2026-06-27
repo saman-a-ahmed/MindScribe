@@ -231,19 +231,18 @@ def interactive_mode(model_path="models/emotion_classifier"):
 
 if __name__ == "__main__":
     """
-    Run inference sanity checks
-    Usage: 
-      python src/inference.py              # Run predefined test cases
-      python src/inference.py --interactive  # Interactive mode
+    Run inference sanity checks. Run from the project root as a module:
+      python -m src.inference                # Run predefined test cases
+      python -m src.inference --interactive  # Interactive mode
     """
     import sys
     import os
-    
+
     # Check if model exists
     if not os.path.exists("models/emotion_classifier"):
         print("❌ Model not found!")
         print("Please train the model first:")
-        print("  python src/train_emotion.py")
+        print("  python -m src.train_emotion")
         sys.exit(1)
     
     # Check for interactive flag
