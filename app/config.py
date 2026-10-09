@@ -1,5 +1,5 @@
 """
-Configuration management for MindScribe
+Configuration management for MindScribe (environment-driven settings)
 """
 
 import os
