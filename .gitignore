@@ -31,10 +31,10 @@ data/processed/*
 # Model checkpoints and large model files
 models/**/checkpoint-*/
 models/**/training_args.bin
- models/**/*.safetensors
- models/**/*.bin
- models/**/*.pt
- models/**/*.pth
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.pt
+models/**/*.pth
 
 # OS
 .DS_Store
