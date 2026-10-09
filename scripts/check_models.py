@@ -1,5 +1,5 @@
 """
-Check if models are available and can be loaded
+Check whether the trained models are available and can be loaded
 """
 
 import sys
