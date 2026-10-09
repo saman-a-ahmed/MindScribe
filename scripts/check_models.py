@@ -6,7 +6,7 @@ import sys
 import os
 from pathlib import Path
 
-# Add src to path
+# Add project root to path so `src` and `app` are importable
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.analyzer import JournalAnalyzer
