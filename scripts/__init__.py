@@ -1,3 +1,3 @@
 """
-Deployment and utility scripts
+Deployment and utility scripts for MindScribe
 """
