@@ -5,7 +5,7 @@ Initialize the MindScribe database schema
 import sys
 from pathlib import Path
 
-# Add app to path
+# Add project root to path so `app` is importable
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.database import init_db, engine
