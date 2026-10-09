@@ -1,5 +1,5 @@
 """
-Initialize database schema
+Initialize the MindScribe database schema
 """
 
 import sys
