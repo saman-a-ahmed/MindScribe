@@ -119,15 +119,14 @@ class TrendAnalyzer:
             
             # Check for consistent increase/decrease
             probs = emo_data['avg_probability'].values
-            if len(probs) >= 3:
-                # Simple trend detection
-                increasing = all(probs[i] <= probs[i+1] for i in range(len(probs)-1))
-                decreasing = all(probs[i] >= probs[i+1] for i in range(len(probs)-1))
-                
-                if increasing and (probs[-1] - probs[0]) > 0.15:
-                    patterns.append(f"{emotion.title()} showing consistent increase")
-                elif decreasing and (probs[0] - probs[-1]) > 0.15:
-                    patterns.append(f"{emotion.title()} showing consistent decrease")
+            # Simple trend detection
+            increasing = all(probs[i] <= probs[i+1] for i in range(len(probs)-1))
+            decreasing = all(probs[i] >= probs[i+1] for i in range(len(probs)-1))
+            
+            if increasing and (probs[-1] - probs[0]) > 0.15:
+                patterns.append(f"{emotion.title()} showing consistent increase")
+            elif decreasing and (probs[0] - probs[-1]) > 0.15:
+                patterns.append(f"{emotion.title()} showing consistent decrease")
         
         return patterns
     
