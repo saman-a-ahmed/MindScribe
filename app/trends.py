@@ -348,12 +348,11 @@ class TrendAnalyzer:
                 patterns.append("Balanced emotional patterns")
         
         # Check for specific emotion dominance
-        if stats['emotions']:
-            top_emotion = max(stats['emotions'], key=lambda x: x['count'])
-            if top_emotion['count'] > total_emotions * 0.3:
-                patterns.append(
-                    f"{top_emotion['emotion'].title()} appears frequently "
-                    f"({top_emotion['count']} occurrences)"
-                )
+        top_emotion = max(stats['emotions'], key=lambda x: x['count'])
+        if top_emotion['count'] > total_emotions * 0.3:
+            patterns.append(
+                f"{top_emotion['emotion'].title()} appears frequently "
+                f"({top_emotion['count']} occurrences)"
+            )
         
         return patterns
