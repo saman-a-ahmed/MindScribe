@@ -9,15 +9,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.database import init_db, engine
-from app.models import Base
+import app.models  # noqa: F401  (registers tables on Base.metadata)
 
 
 def main():
     """Initialize database tables"""
     print("Initializing database...")
     try:
-        # Create all tables
-        Base.metadata.create_all(bind=engine)
+        init_db()
         print("✓ Database initialized successfully!")
         print(f"Database URL: {engine.url}")
     except Exception as e:
