@@ -3,7 +3,7 @@ Data access layer - CRUD operations and queries for journal entries
 """
 
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, func, and_, or_
+from sqlalchemy import desc, func, and_
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from app.models import JournalEntry, EmotionAnalysis, DistortionAnalysis
