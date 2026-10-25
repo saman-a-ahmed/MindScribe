@@ -64,10 +64,10 @@ class Settings:
     @classmethod
     def validate(cls) -> bool:
         """
-        Validate that required settings are present
-        
+        Warn about missing model paths without failing
+
         Returns:
-            True if valid, raises exception if not
+            Always True; missing models only produce warnings
         """
         # Check if model paths exist (warn if not, but don't fail)
         emotion_path = Path(cls.EMOTION_MODEL_PATH)
