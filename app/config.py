@@ -44,10 +44,14 @@ class Settings:
     API_RELOAD: bool = os.getenv("API_RELOAD", "false").lower() == "true"
     
     # CORS settings (comma-separated origins in the env var)
-    CORS_ORIGINS: List[str] = os.getenv(
-        "CORS_ORIGINS",
-        "http://localhost:8501,http://localhost:3000"
-    ).split(",")
+    CORS_ORIGINS: List[str] = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS",
+            "http://localhost:8501,http://localhost:3000"
+        ).split(",")
+        if origin.strip()
+    ]
     
     # Application
     APP_NAME: str = os.getenv("APP_NAME", "MindScribe")
