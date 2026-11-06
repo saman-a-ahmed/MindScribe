@@ -26,6 +26,7 @@ MindScribe combines modern NLP techniques into a personal AI companion that help
 - **FastAPI** REST backend with automatic analysis on entry creation
 - **SQLite / PostgreSQL** persistence
 - Trend visualization and pattern detection (`TrendAnalyzer`)
+- Model-free insights and recommendations generated from stored results
 
 ## 🧱 Tech Stack
 
