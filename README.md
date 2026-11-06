@@ -159,6 +159,7 @@ Configuration is read from environment variables / a `.env` file (see
 | `DISTORTION_MODEL_PATH` | `models/distortion_classifier` | Path to the distortion model |
 | `EMOTION_THRESHOLD` / `DISTORTION_THRESHOLD` | `0.3` | Detection probability cut-offs |
 | `API_HOST` / `API_PORT` | `0.0.0.0` / `8000` | API bind address |
+| `API_RELOAD` | `false` | Auto-reload the API on code changes (development only) |
 | `CORS_ORIGINS` | `http://localhost:8501,http://localhost:3000` | Allowed origins (comma-separated) |
 
 ## 📡 API
