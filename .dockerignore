@@ -45,6 +45,7 @@ models/**/training_args.bin
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Environment
 .env
