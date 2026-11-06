@@ -140,6 +140,7 @@ python -m src.inference_distortion --interactive  # interactive mode
 ```bash
 python scripts/init_db.py
 python scripts/check_models.py
+# Both scripts are safe to re-run
 ```
 
 ### 4. Run the application
