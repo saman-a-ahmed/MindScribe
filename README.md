@@ -18,6 +18,7 @@ MindScribe combines modern NLP techniques into a personal AI companion that help
 - Detects **12 cognitive distortion types** grounded in CBT (see [taxonomy](#-cognitive-distortions))
 - Multi-label classification
 - Trained on a synthetic, pattern-based dataset
+- Distortion metadata lives in `src/cognitive_distortions.py`
 
 ### Web Application
 - **Streamlit** UI: write & analyze entries, browse history, visualize trends and AI insights
