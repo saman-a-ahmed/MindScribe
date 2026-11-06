@@ -246,6 +246,7 @@ docker-compose logs -f                              # follow logs
 ```
 
 Edit `docker-compose.yml` to customize database credentials, ports, volumes, and environment variables.
+Stop the stack with `docker-compose down` (add `-v` to also remove the database volume).
 
 ## 🤝 Contributing
 
