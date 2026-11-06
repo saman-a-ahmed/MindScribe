@@ -161,6 +161,7 @@ Configuration is read from environment variables / a `.env` file (see
 | `API_HOST` / `API_PORT` | `0.0.0.0` / `8000` | API bind address |
 | `API_RELOAD` | `false` | Auto-reload the API on code changes (development only) |
 | `CORS_ORIGINS` | `http://localhost:8501,http://localhost:3000` | Allowed origins (comma-separated) |
+| `APP_NAME` / `APP_VERSION` | `MindScribe` / `1.0.0` | Application metadata shown by the API |
 
 ## 📡 API
 
