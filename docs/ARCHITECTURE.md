@@ -103,3 +103,4 @@ database and regenerate insights/recommendations with the model-free helpers in
 - **`GET /api/entries/trends` / `/stats`** → aggregation queries in the
   repository. (These static routes are declared *before* `/{entry_id}` so they
   are not captured by the dynamic integer path.)
+- **`DELETE /api/entries/{id}`** → delete the entry; its analysis rows go with it via cascade.
