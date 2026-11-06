@@ -32,6 +32,7 @@ data/processed/*
 .env
 .env.local
 .env.*.local
+.envrc
 
 # Model checkpoints and large model files
 models/**/checkpoint-*/
