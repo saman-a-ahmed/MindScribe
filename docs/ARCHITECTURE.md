@@ -86,6 +86,7 @@ database and regenerate insights/recommendations with the model-free helpers in
 
 - `JournalEntry` 1─*N* `EmotionAnalysis` and 1─*N* `DistortionAnalysis`
   (cascade delete).
+- Analysis rows reference their entry through an indexed `entry_id`.
 - Only emotions/distortions **above the configured threshold** are stored.
 - Timestamps are naive UTC (`app.utils.utcnow`) to match the non-timezone
   `DateTime` columns.
