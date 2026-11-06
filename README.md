@@ -250,6 +250,7 @@ Edit `docker-compose.yml` to customize database credentials, ports, volumes, and
 ## 🤝 Contributing
 
 Contributions are welcome — please open an issue or submit a pull request.
+Please run `pytest` before submitting a pull request.
 
 ## 📝 License
 
