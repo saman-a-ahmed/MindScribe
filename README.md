@@ -38,6 +38,7 @@ MindScribe combines modern NLP techniques into a personal AI companion that help
 | Frontend | Streamlit, Plotly |
 | Database | PostgreSQL / SQLite |
 | Config | pydantic, python-dotenv |
+| Testing | pytest |
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the module map and data flow.
 
