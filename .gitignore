@@ -28,6 +28,7 @@ data/processed/*
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
 
 # Environment variables
 .env
