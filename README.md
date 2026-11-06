@@ -13,6 +13,7 @@ MindScribe combines modern NLP techniques into a personal AI companion that help
 - Multi-label classification — multiple emotions per entry
 - RoBERTa-based, trained on the GoEmotions dataset
 - Real-time inference
+- Predictions are probabilities, filtered by `EMOTION_THRESHOLD`
 
 ### Cognitive Distortion Detection
 - Detects **12 cognitive distortion types** grounded in CBT (see [taxonomy](#-cognitive-distortions))
