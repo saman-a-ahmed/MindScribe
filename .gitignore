@@ -47,6 +47,7 @@ Thumbs.db
 
 # Logs
 *.log
+*.tmp
 
 # IDE
 .vscode/
