@@ -163,6 +163,7 @@ Configuration is read from environment variables / a `.env` file (see
 | `CORS_ORIGINS` | `http://localhost:8501,http://localhost:3000` | Allowed origins (comma-separated) |
 | `APP_NAME` / `APP_VERSION` | `MindScribe` / `1.0.0` | Application metadata shown by the API |
 | `DEBUG` | `false` | Enable debug mode |
+| `DEFAULT_USER_ID` | `default` | User id assigned to entries (placeholder until multi-user support) |
 
 ## 📡 API
 
