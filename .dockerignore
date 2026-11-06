@@ -48,6 +48,7 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Jupyter
 .ipynb_checkpoints/
