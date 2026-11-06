@@ -150,6 +150,7 @@ streamlit run app/streamlit_app.py
 
 # Option B — FastAPI backend
 python -m uvicorn app.main:app --reload
+# Interactive API docs are served at http://localhost:8000/docs
 ```
 
 ## ⚙️ Configuration
