@@ -85,6 +85,7 @@ docker-compose exec api python scripts/check_models.py # verify models load
 - Streamlit UI: http://localhost:8501
 - FastAPI: http://localhost:8000
 - API docs: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
 ## 🛠️ Local Development
 
