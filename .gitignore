@@ -54,6 +54,7 @@ Desktop.ini
 .vscode/
 .idea/
 .cursor/
+*.swp
 
 # Docker volumes
 postgres_data/
