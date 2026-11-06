@@ -259,3 +259,4 @@ Please run `pytest` before submitting a pull request.
 ## ⚠️ Disclaimer
 
 MindScribe is a reflective tool to help you understand your emotional patterns and thought processes. It is **not a replacement for professional mental health care**. Always seek professional help when needed.
+If you are in crisis, please contact your local emergency services or a crisis line.
