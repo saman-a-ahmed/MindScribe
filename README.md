@@ -92,6 +92,7 @@ docker-compose exec api python scripts/check_models.py # verify models load
 ### Prerequisites
 - Python 3.10+ (3.8+ for the ML scripts; the app targets 3.10)
 - pip and Git
+- Docker and Docker Compose (only needed for the Docker quick start)
 
 ### 1. Install
 
