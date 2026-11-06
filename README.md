@@ -108,6 +108,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+# For tests only, use requirements-dev.txt instead (no ML stack)
 
 # Optional: copy and edit environment configuration
 cp .env.example .env
