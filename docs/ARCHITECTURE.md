@@ -89,6 +89,7 @@ database and regenerate insights/recommendations with the model-free helpers in
 - Only emotions/distortions **above the configured threshold** are stored.
 - Timestamps are naive UTC (`app.utils.utcnow`) to match the non-timezone
   `DateTime` columns.
+- `JournalEntry.user_id` is a placeholder for future multi-user support.
 
 ## Request lifecycle examples
 
